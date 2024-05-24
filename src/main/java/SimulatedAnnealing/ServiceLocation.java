@@ -13,6 +13,7 @@ public class ServiceLocation {
     private int capacity;
     private ArrayList<Order> orders;
     private ArrayList<Node> assignedNodes;
+    private double cost;
 
     public ServiceLocation(double x, double y, String square, int closestNodeId) {
         this.x = x;
@@ -24,12 +25,13 @@ public class ServiceLocation {
         this.capacity = 0;
         this.orders = new ArrayList<>();
         this.assignedNodes = new ArrayList<>();
+        this.cost = 75000;
     }
 
     public double getX() { return x; }
     public double getY() { return y; }
     public String getSquare() { return square; }
-    public int getTotalDeliveries() { return totalDeliveries; }
+
     public int getTotalPickups() { return totalPickups; }
     public int getClosestFacilityId() { return closestFacilityId; }
     public void setClosestFacilityId(int facilityId) { this.closestFacilityId = facilityId; }
@@ -37,6 +39,7 @@ public class ServiceLocation {
     public int getCapacity() { return capacity; }
     public ArrayList<Order> getOrders() { return orders; }
     public ArrayList<Node> getAssignedNodes() { return assignedNodes; }
+    public double getCost() {return this.cost; }
 
     public void setCapacity(int capacity) { this.capacity = capacity; }
 
@@ -46,5 +49,22 @@ public class ServiceLocation {
 
     public void addOrdersFromRoad(ArrayList<Order> roadOrders) {
         this.orders.addAll(roadOrders);
+    }
+
+    public void updateCost() {
+        double orderCost = 0.0;
+        double deliveryCost = 0.0;
+        for (Order order : orders) {
+            orderCost += 0.10;
+
+            if (order.isDelivery()) {
+                deliveryCost += 0.5 * order.getDistanceServiceLocation() / 1000 * 2;
+
+            }
+        }
+
+        cost = cost + orderCost + deliveryCost;
+
+
     }
 }

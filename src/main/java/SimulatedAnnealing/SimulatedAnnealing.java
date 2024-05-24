@@ -28,7 +28,7 @@ public class SimulatedAnnealing {
     public void optimize() {
         double temperature = START_TEMPERATURE;
         int counter = 0;
-        double currentCost = calculateCosts(counter);
+        double currentCost = 100000000000.0;
         ArrayList<ServiceLocation> bestSolution = new ArrayList<>(serviceLocations);
         double bestCost = currentCost;
 
@@ -40,7 +40,7 @@ public class SimulatedAnnealing {
             ArrayList<ServiceLocation> currentSolution = new ArrayList<>(serviceLocations);
             double randomProb = random.nextDouble();
 
-            if (randomProb < 0.6 && serviceLocations.size() > 1) {
+            if (randomProb < 0.4 && serviceLocations.size() > 1) {
                 removeLocation();
             } else {
                 addLocation();
@@ -77,35 +77,8 @@ public class SimulatedAnnealing {
 
     private double calculateCosts(int counter) {
         double cost = 0.0;
-        double locationCost = 0.0;
-        double capacityCost = 0.0;
-        double deliveryCost = 0.0;
-
-        int totalOrders = 0;
-        int totalDeliver = 0;
         for (ServiceLocation serviceLocation : serviceLocations) {
-            locationCost += 75000;
-            ArrayList<Order> orders = serviceLocation.getOrders();
-
-            totalOrders += serviceLocation.getOrders().size();
-
-            capacityCost += serviceLocation.getCapacity() * 0.1;
-
-            for (Order order : orders) {
-                if (order.isDelivery()) {
-                    deliveryCost += order.getDistanceServiceLocation() / 1000;
-                    totalDeliver ++;
-                }
-            }
-        }
-
-
-
-        cost = capacityCost + deliveryCost + locationCost;
-        if (counter % 10 == 0) {
-
-            System.out.println("Total orders = " + totalOrders + " Total deliveries = " + totalDeliver);
-            System.out.println("Total Cost = " + cost + " Capacity Cost = " + capacityCost + " Delivery Cost = " + deliveryCost + " Location Cost " + locationCost);
+            cost += serviceLocation.getCost();
         }
         return cost;
     }

@@ -21,14 +21,14 @@ public class ServiceLocationConfig {
         this.random = new Random();
     }
 
-    public void setCapacity() {
+    private void allocateNodesAndRoads() {
+        // Clear previous allocations
+        nodeToFacility.clear();
         for (ServiceLocation serviceLocation : serviceLocations) {
-            int numberOrders = serviceLocation.getOrders().size();
-            serviceLocation.setCapacity(numberOrders);
+            serviceLocation.clearOrders();
         }
-    }
 
-    private void allocateNodes() {
+        // Allocate nodes to the nearest service location and update roads simultaneously
         for (Node node : nodes) {
             int nodeId = node.getNodeId();
             double minDistance = Double.MAX_VALUE;
@@ -42,10 +42,9 @@ public class ServiceLocationConfig {
                 }
             }
             nodeToFacility.put(nodeId, closestFacility);
+            node.setAssignedFacility(closestFacility);
         }
-    }
 
-    private void allocateRoads() {
         for (Road road : roads) {
             Node node1 = findNodeById(road.getV1());
             Node node2 = findNodeById(road.getV2());
@@ -54,17 +53,26 @@ public class ServiceLocationConfig {
                 int facility1 = nodeToFacility.get(node1.getNodeId());
                 int facility2 = nodeToFacility.get(node2.getNodeId());
 
-
-                ServiceLocation serviceLocation = findServiceLocationByNodeId(facility1);
-                if (serviceLocation != null) {
-                    road.setServiceLocation(serviceLocation, distances);
-                    serviceLocation.addOrdersFromRoad(road.getOrders());
-                    for (Order order : road.getOrders()) {
-                        order.setDistanceServiceLocation(DistanceCalc.calculateDist(distances, node1.getNodeId(), serviceLocation.getClosestNodeId()));
+                if (facility1 == facility2) {
+                    ServiceLocation serviceLocation = findServiceLocationByNodeId(facility1);
+                    if (serviceLocation != null) {
+                        road.setServiceLocation(serviceLocation, distances);
+                        serviceLocation.addOrdersFromRoad(road.getOrders());
+                        for (Order order : road.getOrders()) {
+                            double distance = DistanceCalc.calculateDist(distances, node1.getNodeId(), serviceLocation.getClosestNodeId());
+                            order.setDistanceServiceLocation(distance);
+                            order.setDelivery(random.nextDouble() > probabilityOfPickup(distance));
+                        }
                     }
-
                 }
             }
+        }
+
+        // Update capacities
+        for (ServiceLocation serviceLocation : serviceLocations) {
+            int numberOrders = serviceLocation.getOrders().size();
+            serviceLocation.setCapacity(numberOrders);
+            serviceLocation.updateCost();
         }
     }
 
@@ -86,21 +94,6 @@ public class ServiceLocationConfig {
         return null;
     }
 
-    private void assignFacilitiesToNodes() {
-        for (Node node : nodes) {
-            int nodeId = node.getNodeId();
-            if (nodeToFacility.containsKey(nodeId)) {
-                node.setAssignedFacility(nodeToFacility.get(nodeId));
-            }
-        }
-    }
-
-    public void clearOrders() {
-        for (ServiceLocation serviceLocation : serviceLocations) {
-            serviceLocation.clearOrders();
-        }
-    }
-
     private double probabilityOfPickup(double distance) {
         double P0 = 0.8;
         double d0 = 1100;
@@ -108,25 +101,7 @@ public class ServiceLocationConfig {
         return P0 * (1 - 1 / (1 + Math.exp(-k * (distance - d0))));
     }
 
-    public void updateDeliveryStatus() {
-        for (Road road : roads) {
-            double totalDistance = 0;
-            for (Order order : road.getOrders()) {
-                double distance = order.getDistanceServiceLocation();
-                totalDistance += distance;
-                boolean delivery = random.nextDouble() > probabilityOfPickup(distance);
-                order.setDelivery(delivery);
-            }
-        }
-    }
-
-
     public void reconfigure() {
-        allocateNodes();
-        clearOrders();
-        assignFacilitiesToNodes();
-        allocateRoads();
-        setCapacity();
-        updateDeliveryStatus();  // Update the delivery status of orders
+        allocateNodesAndRoads();
     }
 }
