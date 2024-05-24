@@ -6,12 +6,13 @@ import java.util.Random;
 public class OrderConfig {
 
     private ArrayList<Road> roads;
-    private Random random;
+    public Random random;
 
     public OrderConfig(ArrayList<Road> roads) {
         this.roads = roads;
         this.random = new Random();
         generateOrders();
+        updateDeliveryStatus();
     }
 
     public ArrayList<Road> getRoads() {
@@ -27,12 +28,8 @@ public class OrderConfig {
             int orderCount = (int) Math.round(baseOrderCount + random.nextGaussian() * baseOrderCount * 0.1);  // Adding some variability
 
             for (int i = 0; i < orderCount; i++) {
-                boolean delivery = random.nextDouble() < probabilityOfPickup(road.getDist());
-
-                Order order = new Order(orderID++, road.getV1(), delivery, road.getDist());
+                Order order = new Order(orderID++, true);
                 orders.add(order);
-
-                // Update the order count for the specific road
                 road.addOrder(order);
             }
         }
@@ -40,10 +37,21 @@ public class OrderConfig {
         return orders;
     }
 
-    private double probabilityOfPickup(double distance) {
+    public double probabilityOfPickup(double distance) {
         double P0 = 0.8;
         double d0 = 1100;
         double k = 0.005;
         return P0 * (1 - 1 / (1 + Math.exp(-k * (distance - d0))));
     }
+
+    public void updateDeliveryStatus() {
+        for (Road road : roads) {
+            for (Order order : road.getOrders()) {
+                double distance = order.getDistanceServiceLocation();
+                boolean delivery = random.nextDouble() < probabilityOfPickup(distance);
+                order.setDelivery(delivery);
+            }
+        }
+    }
 }
+

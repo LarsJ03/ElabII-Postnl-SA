@@ -28,7 +28,7 @@ public class SimulatedAnnealing {
     public void optimize() {
         double temperature = START_TEMPERATURE;
         int counter = 0;
-        double currentCost = calculateCosts();
+        double currentCost = calculateCosts(counter);
         ArrayList<ServiceLocation> bestSolution = new ArrayList<>(serviceLocations);
         double bestCost = currentCost;
 
@@ -49,7 +49,7 @@ public class SimulatedAnnealing {
             ServiceLocationConfig serviceLocationConfig = new ServiceLocationConfig(currentSolution, distances, nodes, roads);
             serviceLocationConfig.reconfigure();
 
-            double newCost = calculateCosts();
+            double newCost = calculateCosts(counter);
 
             if (acceptanceProbability(currentCost, newCost, temperature) > random.nextDouble()) {
                 currentCost = newCost;
@@ -75,7 +75,7 @@ public class SimulatedAnnealing {
         serviceLocations = bestSolution;
     }
 
-    private double calculateCosts() {
+    private double calculateCosts(int counter) {
         double cost = 0.0;
         double locationCost = 0.0;
         double capacityCost = 0.0;
@@ -89,12 +89,15 @@ public class SimulatedAnnealing {
 
             for (Order order : orders) {
                 if (order.isDelivery()) {
-                    deliveryCost += order.getDistanceServiceLocation() / 1000;
+                    deliveryCost += order.getDistanceServiceLocation() / 100;
                 }
             }
         }
 
         cost = capacityCost + deliveryCost + locationCost;
+        if (counter % 10 == 0) {
+            System.out.println("Total Cost = " + cost + " Capacity Cost = " + capacityCost + " Delivery Cost = " + deliveryCost + " Location Cost " + locationCost);
+        }
         return cost;
     }
 

@@ -5,7 +5,7 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) {
         // Reading data from files
-        ArrayList<Node> intersections = ReadData.readIntersectionsFromFile("src/main/Data/Nodes.csv");
+        ArrayList<Node> intersections = ReadData.readIntersectionsFromFile("src/main/Data/nodes.csv");
         ArrayList<Road> roads = ReadData.readRoadsFromFile("src/main/Data/edges.csv");
         ArrayList<ServiceLocation> serviceLocations = ReadData.readServiceLocationsFromFile("src/main/Data/ServicePointLocations.csv");
         double[][] distances = ReadData.loadDistances("src/main/Data/distances.csv");

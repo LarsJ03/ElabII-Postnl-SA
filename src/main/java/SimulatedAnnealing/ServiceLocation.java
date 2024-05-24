@@ -21,7 +21,7 @@ public class ServiceLocation {
         this.totalDeliveries = 0;
         this.totalPickups = 0;
         this.closestNodeId = closestNodeId;
-        this.capacity = 10;
+        this.capacity = 0;
         this.orders = new ArrayList<>();
         this.assignedNodes = new ArrayList<>();
     }
@@ -36,16 +36,13 @@ public class ServiceLocation {
     public int getClosestNodeId() { return closestNodeId; }
     public int getCapacity() { return capacity; }
     public ArrayList<Order> getOrders() { return orders; }
-    public int nrOfOrders() { return orders.size(); }
     public ArrayList<Node> getAssignedNodes() { return assignedNodes; }
 
     public void setCapacity(int capacity) { this.capacity = capacity; }
 
-    public void increaseCapacity() { this.capacity += 1; }
-
-    public void decreaseCapacity() { this.capacity -= 1; }
-
-    public void addNode(Node node) { this.assignedNodes.add(node); }
+    public void clearOrders() {
+        this.orders.clear();
+    }
 
     public void addOrdersFromRoad(ArrayList<Order> roadOrders) {
         this.orders.addAll(roadOrders);

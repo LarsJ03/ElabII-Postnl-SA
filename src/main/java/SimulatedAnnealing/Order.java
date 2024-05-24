@@ -6,11 +6,10 @@ public class Order {
     private boolean delivery; // Make this non-static
     private double distanceServiceLocation;
 
-    public Order(int orderID, int customerID, boolean delivery, double distanceServiceLocation) {
+    public Order(int orderID, boolean delivery) {
         this.orderID = orderID;
-        this.customerID = customerID;
-        this.delivery = delivery; // Correctly set the delivery field
-        this.distanceServiceLocation = distanceServiceLocation;
+        this.delivery = delivery;
+        this.distanceServiceLocation = -1.00;
     }
 
     public int getCustomerID() {
@@ -23,5 +22,13 @@ public class Order {
 
     public double getDistanceServiceLocation() {
         return this.distanceServiceLocation;
+    }
+
+    public void setDistanceServiceLocation(double distanceServiceLocation) {
+        this.distanceServiceLocation = distanceServiceLocation;
+    }
+
+    public void setDelivery(boolean delivery) {
+        this.delivery = delivery;
     }
 }

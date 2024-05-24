@@ -20,7 +20,7 @@ public class ServiceLocationConfig {
 
     public void setCapacity() {
         for (ServiceLocation serviceLocation : serviceLocations) {
-            int numberOrders = serviceLocation.nrOfOrders();
+            int numberOrders = serviceLocation.getOrders().size();
             serviceLocation.setCapacity(numberOrders);
         }
     }
@@ -56,6 +56,9 @@ public class ServiceLocationConfig {
                     if (serviceLocation != null) {
                         road.setServiceLocation(serviceLocation, distances);
                         serviceLocation.addOrdersFromRoad(road.getOrders());
+                        for (Order order : road.getOrders()) {
+                            order.setDistanceServiceLocation(DistanceCalc.calculateDist(distances, node1.getNodeId(), serviceLocation.getClosestNodeId()));
+                        }
                     }
                 }
             }
@@ -89,10 +92,31 @@ public class ServiceLocationConfig {
         }
     }
 
+    public void clearOrders() {
+        for (ServiceLocation serviceLocation : serviceLocations) {
+            serviceLocation.clearOrders();
+        }
+    }
+    public void updateDeliveryStatus() {
+        OrderConfig orderConfig = new OrderConfig(roads);
+        for (Road road : roads) {
+            double totalDistance = 0;
+            for (Order order : road.getOrders()) {
+                double distance = order.getDistanceServiceLocation();
+                totalDistance += distance;
+                boolean delivery = orderConfig.random.nextDouble() < orderConfig.probabilityOfPickup(distance);
+                order.setDelivery(delivery);
+            }
+        }
+    }
+
+
     public void reconfigure() {
         allocateNodes();
+        clearOrders();
         assignFacilitiesToNodes();
-        setCapacity();
         allocateRoads();
+        setCapacity();
+        updateDeliveryStatus();  // Update the delivery status of orders
     }
 }

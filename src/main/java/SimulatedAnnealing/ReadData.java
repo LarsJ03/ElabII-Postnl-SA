@@ -19,7 +19,7 @@ public class ReadData {
                     continue;
                 }
                 String[] data = line.split(";");
-                if (data.length == 16) {
+                if (data.length == 17) {
                     int V1 = Integer.parseInt(data[1]);
                     int V2 = Integer.parseInt(data[2]);
                     String type = data[5];
@@ -30,9 +30,9 @@ public class ReadData {
                     double x2 = Double.parseDouble(data[10].replace(",", "."));
                     double y2 = Double.parseDouble(data[11].replace(",", "."));
                     int population = Integer.parseInt(data[15].replace(",", "."));
+                    double orderOdds = Double.parseDouble(data[16].replace(",", "."));
 
-                    Road road = new Road(V1, V2, dist, x1, y1, x2, y2, type, maxSpeed, population);
-                    System.out.println(road);
+                    Road road = new Road(V1, V2, dist, x1, y1, x2, y2, type, maxSpeed, population, orderOdds);
                     roads.add(road);
                 }
             }
@@ -57,7 +57,6 @@ public class ReadData {
                             Double.parseDouble(data[2]),
                             data[3]
                     );
-                    System.out.println(node);
                     intersections.add(node);  // Adding to the list as well
                 }
             }
