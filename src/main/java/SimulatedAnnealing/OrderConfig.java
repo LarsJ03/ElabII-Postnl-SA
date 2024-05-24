@@ -12,7 +12,6 @@ public class OrderConfig {
         this.roads = roads;
         this.random = new Random();
         generateOrders();
-        updateDeliveryStatus();
     }
 
     public ArrayList<Road> getRoads() {
@@ -37,21 +36,5 @@ public class OrderConfig {
         return orders;
     }
 
-    public double probabilityOfPickup(double distance) {
-        double P0 = 0.8;
-        double d0 = 1100;
-        double k = 0.005;
-        return P0 * (1 - 1 / (1 + Math.exp(-k * (distance - d0))));
-    }
-
-    public void updateDeliveryStatus() {
-        for (Road road : roads) {
-            for (Order order : road.getOrders()) {
-                double distance = order.getDistanceServiceLocation();
-                boolean delivery = random.nextDouble() < probabilityOfPickup(distance);
-                order.setDelivery(delivery);
-            }
-        }
-    }
 }
 

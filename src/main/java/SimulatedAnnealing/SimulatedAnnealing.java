@@ -81,21 +81,30 @@ public class SimulatedAnnealing {
         double capacityCost = 0.0;
         double deliveryCost = 0.0;
 
+        int totalOrders = 0;
+        int totalDeliver = 0;
         for (ServiceLocation serviceLocation : serviceLocations) {
             locationCost += 75000;
             ArrayList<Order> orders = serviceLocation.getOrders();
+
+            totalOrders += serviceLocation.getOrders().size();
 
             capacityCost += serviceLocation.getCapacity() * 0.1;
 
             for (Order order : orders) {
                 if (order.isDelivery()) {
-                    deliveryCost += order.getDistanceServiceLocation() / 100;
+                    deliveryCost += order.getDistanceServiceLocation() / 1000;
+                    totalDeliver ++;
                 }
             }
         }
 
+
+
         cost = capacityCost + deliveryCost + locationCost;
         if (counter % 10 == 0) {
+
+            System.out.println("Total orders = " + totalOrders + " Total deliveries = " + totalDeliver);
             System.out.println("Total Cost = " + cost + " Capacity Cost = " + capacityCost + " Delivery Cost = " + deliveryCost + " Location Cost " + locationCost);
         }
         return cost;
