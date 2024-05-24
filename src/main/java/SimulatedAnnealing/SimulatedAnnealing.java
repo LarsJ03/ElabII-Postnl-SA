@@ -5,9 +5,9 @@ import java.util.Random;
 
 public class SimulatedAnnealing {
     // Temperature parameters
-    private static final double START_TEMPERATURE = 10000000.0;
-    private static final double END_TEMPERATURE = 30.0;
-    private static final double COOLING_RATE = 0.95;
+    private double startTemperature;
+    private double endingTemperature;
+    private double coolingRate;
     private ArrayList<Node> nodes;
     private ArrayList<Road> roads;
     private ArrayList<ServiceLocation> serviceLocations;
@@ -16,17 +16,20 @@ public class SimulatedAnnealing {
     // Random generator for the simulated annealing
     private static final Random random = new Random();
 
-    public SimulatedAnnealing(ArrayList<Node> nodes, ArrayList<Road> roads, ArrayList<ServiceLocation> serviceLocations, double[][] distances) {
+    public SimulatedAnnealing(ArrayList<Node> nodes, ArrayList<Road> roads, ArrayList<ServiceLocation> serviceLocations, double[][] distances, double startTemperature, double endingTemperature, double coolingRate) {
         this.nodes = nodes;
         this.roads = roads;
         this.serviceLocations = serviceLocations;
         this.distances = distances;
+        this.startTemperature = startTemperature; // Initialize startTemperature
+        this.endingTemperature = endingTemperature; // Initialize endingTemperature
+        this.coolingRate = coolingRate; // Initialize coolingRate
 
         optimize();
     }
 
     public void optimize() {
-        double temperature = START_TEMPERATURE;
+        double temperature = startTemperature;
         int counter = 0;
         double currentCost = 100000000000.0;
         ArrayList<ServiceLocation> bestSolution = new ArrayList<>(serviceLocations);
@@ -36,7 +39,7 @@ public class SimulatedAnnealing {
         ServiceLocationConfig config = new ServiceLocationConfig(serviceLocations, distances, nodes, roads);
         config.reconfigure();
 
-        while (temperature > END_TEMPERATURE) {
+        while (temperature > endingTemperature) {
             ArrayList<ServiceLocation> currentSolution = new ArrayList<>(serviceLocations);
             double randomProb = random.nextDouble();
 
@@ -67,7 +70,7 @@ public class SimulatedAnnealing {
                 System.out.println("Current temperature = " + temperature + " Current cost = " + currentCost + " Best cost = " + bestCost + " Amount of service locations = " + serviceLocations.size());
             }
 
-            temperature *= COOLING_RATE;
+            temperature *= coolingRate;
             counter += 1;
         }
 
