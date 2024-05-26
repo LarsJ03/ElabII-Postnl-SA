@@ -39,7 +39,7 @@ public class SimulatedAnnealing {
         ServiceLocationConfig config = new ServiceLocationConfig(serviceLocations, distances, nodes, roads);
         config.reconfigure();
 
-        while (temperature > endingTemperature) {
+        while (temperature > endingTemperature && counter < 1000) {
             ArrayList<ServiceLocation> currentSolution = new ArrayList<>(serviceLocations);
             double randomProb = random.nextDouble();
 
@@ -67,7 +67,7 @@ public class SimulatedAnnealing {
             }
 
             if (counter % 10 == 0) {
-                System.out.println("Current temperature = " + temperature + " Current cost = " + currentCost + " Best cost = " + bestCost + " Amount of service locations = " + serviceLocations.size());
+                System.out.println("Current temperature = " + temperature + " Current cost = " + currentCost + " Best cost = " + bestCost + " Amount of service locations = " + serviceLocations.size() + "Counter = " + counter);
             }
 
             temperature *= coolingRate;

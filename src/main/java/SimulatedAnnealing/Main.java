@@ -4,6 +4,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +29,8 @@ public class Main {
                         double endingTemperature = Double.parseDouble(params[1]);
                         double coolingRate = Double.parseDouble(params[2]);
 
+                        System.out.println(startingTemperature + " " + endingTemperature + " " + coolingRate);
+
                         // Process the message using Simulated Annealing
                         processMessage(startingTemperature, endingTemperature, coolingRate);
 
@@ -46,7 +49,7 @@ public class Main {
         // sqsClient.close(); // Remove or handle outside the loop for graceful shutdown
     }
 
-    private static void processMessage(double startingTemp, double endingTemp, double coolingRate) {
+    private static void processMessage(double startingTemp, double endingTemp, double coolingRate) throws IOException {
         ArrayList<Node> intersections = ReadData.readIntersectionsFromFile("src/main/Data/nodes.csv");
         ArrayList<Road> roads = ReadData.readRoadsFromFile("src/main/Data/edges.csv");
         ArrayList<ServiceLocation> serviceLocations = ReadData.readServiceLocationsFromFile("src/main/Data/ServicePointLocations.csv");
