@@ -12,6 +12,8 @@ public class ReadData {
         String line;
         boolean firstLine = true; // to skip header
 
+        int orderID = 1; // Initialize the order ID counter
+
         while ((line = reader.readLine()) != null) {
             if (firstLine) {
                 firstLine = false; // Skip the header row
@@ -19,54 +21,78 @@ public class ReadData {
             }
             String[] data = line.split(";");
             if (data.length == 17) {
-                int V1 = Integer.parseInt(data[1]);
-                int V2 = Integer.parseInt(data[2]);
+                int v1 = Integer.parseInt(data[1]);
+                int v2 = Integer.parseInt(data[2]);
                 String type = data[5];
-                int maxSpeed = Integer.parseInt(data[7]);
-                double dist = Double.parseDouble(data[3].replace(",", "."));
-                double x1 = Double.parseDouble(data[8].replace(",", "."));
-                double y1 = Double.parseDouble(data[9].replace(",", "."));
-                double x2 = Double.parseDouble(data[10].replace(",", "."));
-                double y2 = Double.parseDouble(data[11].replace(",", "."));
+                int x1 = Integer.parseInt(data[8].replace(",", "."));
+                int y1 = Integer.parseInt(data[9].replace(",", "."));
+                int x2 = Integer.parseInt(data[10].replace(",", "."));
+                int y2 = Integer.parseInt(data[11].replace(",", "."));
                 int population = Integer.parseInt(data[15].replace(",", "."));
                 double orderOdds = Double.parseDouble(data[16].replace(",", "."));
+                int ordersCount = (int) (population * orderOdds);
 
-                Road road = new Road(V1, V2, dist, x1, y1, x2, y2, type, maxSpeed, population, orderOdds);
+                ArrayList<Order> orders = new ArrayList<>();
+
+                // Create Order objects and add to the orders list
+                for (int i = 0; i < ordersCount; i++) {
+                    Order order = new Order(orderID++, x1, y1, v1);
+                    orders.add(order);
+                }
+
+                Road road = new Road(x1, y1, x2, y2, v1, v2, population, orders);
                 roads.add(road);
             }
         }
+
         reader.close();
         return roads;
     }
 
-    public static ArrayList<Node> readIntersectionsFromFile(String filename) throws IOException {
-        ArrayList<Node> intersections = new ArrayList<>();
+    public static ArrayList<Double> readPackageIndex(String filename) throws IOException {
+        ArrayList<Double> packageIndex = new ArrayList<>();
         BufferedReader reader = new BufferedReader(new FileReader(filename));
         String line;
+        boolean firstLine = true; // to skip header
 
         while ((line = reader.readLine()) != null) {
-            line = removeUtf8Bom(line); // Handle potential BOM on every line
-            String[] data = line.split(";");
-            if (data.length == 4) {
-                Node node = new Node(
-                        Integer.parseInt(data[0]),
-                        Double.parseDouble(data[1]),
-                        Double.parseDouble(data[2]),
-                        data[3]
-                );
-                intersections.add(node);  // Adding to the list as well
+            if (firstLine) {
+                firstLine = false; // Skip the header row
+                continue;
             }
+            String[] data = line.split(",");
+
+            double index = Double.parseDouble(data[1]);
+            packageIndex.add(index);
         }
+
+
+
+
         reader.close();
-        return intersections;  // Returning the list for use
+        return packageIndex;
     }
 
-    private static String removeUtf8Bom(String s) {
-        if (s.startsWith("\uFEFF")) {
-            return s.substring(1);
+    public static ArrayList<Node> readNodes(String filename) throws IOException {
+        ArrayList<Node> nodes = new ArrayList<>();
+        BufferedReader reader = new BufferedReader(new FileReader(filename));
+        String line;
+        boolean firstLine = true; // to skip header
+
+        while ((line = reader.readLine()) != null) {
+            String[] data = line.split(";");
+
+            int nodeID = Integer.parseInt(data[0]);
+            nodes.add(new Node(nodeID));
         }
-        return s;
+
+
+
+
+        reader.close();
+        return nodes;
     }
+
 
     public static ArrayList<ServiceLocation> readServiceLocationsFromFile(String filename) throws IOException {
         ArrayList<ServiceLocation> locations = new ArrayList<>();
@@ -75,18 +101,12 @@ public class ReadData {
 
         while ((line = reader.readLine()) != null) {
             String[] data = line.split(";");
-            if (data.length == 8) {
-                ServiceLocation location = new ServiceLocation(
-                        // Location ID, converted from String to int
-                        Double.parseDouble(data[1]), // X
-                        Double.parseDouble(data[2]), // Y
-                        data[3], //
-                        Integer.parseInt(data[7]));
-                // Closest Node ID, hardcoded as -1 if not available (adjust if data[7] is intended to be used)
-                locations.add(location);
-            }
+
+            int nodeId = Integer.parseInt(data[0].replace(",", "."));
+            ServiceLocation servicelocation = new ServiceLocation(nodeId);
+            locations.add(servicelocation);
+
         }
-        reader.close();
         return locations;
     }
 

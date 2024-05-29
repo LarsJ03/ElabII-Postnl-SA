@@ -1,107 +1,130 @@
 package SimulatedAnnealing;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Random;
 
 public class ServiceLocationConfig {
-    private ArrayList<ServiceLocation> serviceLocations;
-    private double[][] distances;
-    private ArrayList<Node> nodes;
-    private HashMap<Integer, Integer> nodeToFacility;
+    private ArrayList<ServiceLocation> servicelocations;
+    private double totalCost;
     private ArrayList<Road> roads;
-    private Random random;
+    private ArrayList<Double> packageIndex;
+    private double[][] distances;
+    private double globalBounceRate;
 
-    public ServiceLocationConfig(ArrayList<ServiceLocation> serviceLocations, double[][] distances, ArrayList<Node> nodes, ArrayList<Road> roads) {
-        this.serviceLocations = serviceLocations;
-        this.distances = distances;
-        this.nodes = nodes;
-        this.roads = roads;
-        this.nodeToFacility = new HashMap<>();
-        this.random = new Random();
+    public ServiceLocationConfig(ArrayList<ServiceLocation> servicelocations, ArrayList<Road> roads, double[][] distances, ArrayList<Double> packageIndex) {
+        this.servicelocations = Utils.deepCopy(servicelocations);
+        this.roads = Utils.deepCopy(roads);
+        this.distances = Utils.deepCopy(distances);
+        this.packageIndex = Utils.deepCopy(packageIndex);
+        this.totalCost = 0.0;
+        this.globalBounceRate = 0.0;
+        assignRoads(distances);
+        updateDistances();
+        setCapacity();
+        calculateTotalCost();
     }
 
-    private void allocateNodesAndRoads() {
-        // Clear previous allocations
-        nodeToFacility.clear();
-        for (ServiceLocation serviceLocation : serviceLocations) {
-            serviceLocation.clearOrders();
-        }
+    public void setGlobalBounceRate(double globalBounceRate) {
+        this.globalBounceRate = globalBounceRate;
+    }
 
-        // Allocate nodes to the nearest service location and update roads simultaneously
-        for (Node node : nodes) {
-            int nodeId = node.getNodeId();
+    public double getGlobalBounceRate() {
+        return this.globalBounceRate;
+    }
+
+    public ArrayList<ServiceLocation> getServicelocations() {
+        return this.servicelocations;
+    }
+
+    public ArrayList<Road> getRoads() {
+        return this.roads;
+    }
+
+    public double[][] getDistances() {
+        return this.distances;
+    }
+
+    public ArrayList<Double> getPackageIndex() {
+        return this.packageIndex;
+    }
+
+    public double getTotalCost() {
+        return this.totalCost;
+    }
+
+    private void calculateTotalCost() {
+        totalCost = 0.0;
+        for (ServiceLocation servicelocation : servicelocations) {
+            totalCost += servicelocation.calculateCosts();
+        }
+    }
+
+    public void addServiceLocation(ServiceLocation servicelocation) {
+        this.servicelocations.add(servicelocation);
+    }
+
+    public void assignRoads(double[][] distances) {
+        for (Road road : roads) {
             double minDistance = Double.MAX_VALUE;
-            int closestFacility = -1;
-            for (ServiceLocation serviceLocation : serviceLocations) {
-                int serviceLocationID = serviceLocation.getClosestNodeId();
-                double distance = distances[nodeId][serviceLocationID];
+            ServiceLocation closestServiceLocation = null;
+            for (ServiceLocation serviceLocation : servicelocations) {
+                double distance = distances[road.getV1()][serviceLocation.getNodeID()];
                 if (distance < minDistance) {
                     minDistance = distance;
-                    closestFacility = serviceLocationID;
+                    closestServiceLocation = serviceLocation;
                 }
             }
-            nodeToFacility.put(nodeId, closestFacility);
-            node.setAssignedFacility(closestFacility);
+            if (closestServiceLocation != null) {
+                closestServiceLocation.addRoad(road);
+            }
         }
+    }
 
-        for (Road road : roads) {
-            Node node1 = findNodeById(road.getV1());
-            Node node2 = findNodeById(road.getV2());
-
-            if (node1 != null && node2 != null) {
-                int facility1 = nodeToFacility.get(node1.getNodeId());
-                int facility2 = nodeToFacility.get(node2.getNodeId());
-
-                if (facility1 == facility2) {
-                    ServiceLocation serviceLocation = findServiceLocationByNodeId(facility1);
-                    if (serviceLocation != null) {
-                        road.setServiceLocation(serviceLocation, distances);
-                        serviceLocation.addOrdersFromRoad(road.getOrders());
-                        for (Order order : road.getOrders()) {
-                            double distance = DistanceCalc.calculateDist(distances, node1.getNodeId(), serviceLocation.getClosestNodeId());
-                            order.setDistanceServiceLocation(distance);
-                            order.setDelivery(random.nextDouble() > probabilityOfPickup(distance));
-                        }
-                    }
+    public void updateDistances() {
+        for (ServiceLocation serviceLocation : servicelocations) {
+            int serviceNode = serviceLocation.getNodeID();
+            for (Road road : serviceLocation.getRoads()) {
+                for (Order order : road.getOrders()) {
+                    order.setWalkingDistanceServiceLocation(distances, serviceNode);
                 }
             }
         }
+    }
 
-        // Update capacities
-        for (ServiceLocation serviceLocation : serviceLocations) {
-            int numberOrders = serviceLocation.getOrders().size();
-            serviceLocation.setCapacity(numberOrders);
-            serviceLocation.updateCost();
+    public void setCapacity() {
+        for (ServiceLocation serviceLocation : servicelocations) {
+            serviceLocation.setCapacity(packageIndex);
         }
     }
 
-    private Node findNodeById(int nodeId) {
-        for (Node node : nodes) {
-            if (node.getNodeId() == nodeId) {
-                return node;
-            }
+    public void removeRandomServiceLocation() {
+        if (!servicelocations.isEmpty()) {
+            Random rand = new Random();
+            int randomIndex = rand.nextInt(servicelocations.size());
+            servicelocations.remove(randomIndex);
+            clearAllParameters();
+            assignRoads(distances);
+            updateDistances();
+            setCapacity();
+            calculateTotalCost();
+        } else {
+            System.out.println("No service locations to remove.");
         }
-        return null;
     }
 
-    private ServiceLocation findServiceLocationByNodeId(int nodeId) {
-        for (ServiceLocation serviceLocation : serviceLocations) {
-            if (serviceLocation.getClosestNodeId() == nodeId) {
-                return serviceLocation;
-            }
+    public void addRandomServiceLocation(int nodeID) {
+        ServiceLocation newServiceLocation = new ServiceLocation(nodeID);
+        servicelocations.add(newServiceLocation);
+        clearAllParameters();
+        assignRoads(distances);
+        updateDistances();
+        setCapacity();
+        calculateTotalCost();
+    }
+
+    private void clearAllParameters() {
+        for (ServiceLocation serviceLocation : servicelocations) {
+            serviceLocation.clearProperties();
         }
-        return null;
-    }
-
-    private double probabilityOfPickup(double distance) {
-        double P0 = 0.8;
-        double d0 = 1100;
-        double k = 0.005;
-        return P0 * (1 - 1 / (1 + Math.exp(-k * (distance - d0))));
-    }
-
-    public void reconfigure() {
-        allocateNodesAndRoads();
     }
 }

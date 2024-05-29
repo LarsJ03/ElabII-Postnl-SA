@@ -1,108 +1,55 @@
 package SimulatedAnnealing;
-
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
 public class SimulatedAnnealing {
-    // Temperature parameters
-    private double startTemperature;
-    private double endingTemperature;
-    private double coolingRate;
-    private ArrayList<Node> nodes;
-    private ArrayList<Road> roads;
-    private ArrayList<ServiceLocation> serviceLocations;
-    private double[][] distances;
+    public static void main(String[] args) throws IOException {
+        ArrayList<ServiceLocation> servicelocations = ReadData.readServiceLocationsFromFile("src/main/Data/ServicePointLocations.csv");
+        ArrayList<Road> roads = ReadData.readRoadsFromFile("src/main/Data/edges.csv");
+        ArrayList<Node> nodes = ReadData.readNodes("src/main/Data/nodes.csv");
+        ArrayList<Double> packageIndex = ReadData.readPackageIndex("src/main/Data/DayOfYearIndex.csv");
+        double[][] distances = ReadData.loadDistances("src/main/Data/distances.csv");
 
-    // Random generator for the simulated annealing
-    private static final Random random = new Random();
+        ServiceLocationConfig original = new ServiceLocationConfig(servicelocations, roads, distances, packageIndex);
+        System.out.println("Original cost = " + original.getTotalCost());
 
-    public SimulatedAnnealing(ArrayList<Node> nodes, ArrayList<Road> roads, ArrayList<ServiceLocation> serviceLocations, double[][] distances, double startTemperature, double endingTemperature, double coolingRate) {
-        this.nodes = nodes;
-        this.roads = roads;
-        this.serviceLocations = serviceLocations;
-        this.distances = distances;
-        this.startTemperature = startTemperature; // Initialize startTemperature
-        this.endingTemperature = endingTemperature; // Initialize endingTemperature
-        this.coolingRate = coolingRate; // Initialize coolingRate
 
-        optimize();
-    }
+        ServiceLocationConfig config = new ServiceLocationConfig(new ArrayList<>(), roads, distances, packageIndex);
+        config.addRandomServiceLocation(1);
+        config.addRandomServiceLocation(1000);
+        double currentCost = config.getTotalCost();
+        double temperature = 10000;
+        double coolingRate = 0.015;
+        Random random = new Random();
 
-    public void optimize() {
-        double temperature = startTemperature;
         int counter = 0;
-        double currentCost = 100000000000.0;
-        ArrayList<ServiceLocation> bestSolution = new ArrayList<>(serviceLocations);
-        double bestCost = currentCost;
+        while (temperature > 1) {
+            ServiceLocationConfig newConfig = Utils.deepCopy(config);
 
-        OrderConfig orderConfig = new OrderConfig(roads);
-        ServiceLocationConfig config = new ServiceLocationConfig(serviceLocations, distances, nodes, roads);
-        config.reconfigure();
-
-        while (temperature > endingTemperature && counter < 1000) {
-            ArrayList<ServiceLocation> currentSolution = new ArrayList<>(serviceLocations);
-            double randomProb = random.nextDouble();
-
-            if (randomProb < 0.4 && serviceLocations.size() > 1) {
-                removeLocation();
+            if (random.nextDouble() < 0.2) {
+                newConfig.removeRandomServiceLocation();
             } else {
-                addLocation();
+                int randomNodeIndex = random.nextInt(nodes.size());
+                int randomNodeID = nodes.get(randomNodeIndex).getNodeID();
+                newConfig.addRandomServiceLocation(randomNodeID);
             }
 
-            ServiceLocationConfig serviceLocationConfig = new ServiceLocationConfig(currentSolution, distances, nodes, roads);
-            serviceLocationConfig.reconfigure();
-
-            double newCost = calculateCosts(counter);
-
+            double newCost = newConfig.getTotalCost();
             if (acceptanceProbability(currentCost, newCost, temperature) > random.nextDouble()) {
+                config = Utils.deepCopy(newConfig);
                 currentCost = newCost;
-            } else {
-                serviceLocations = currentSolution;
             }
 
-            if (currentCost < bestCost) {
-                System.out.println("Improved from " + bestCost + " to " + currentCost);
-                bestSolution = new ArrayList<>(serviceLocations);
-                bestCost = currentCost;
+            if (counter % 30 == 0) {
+                System.out.println("Best cost = " + currentCost + " Temperature = " + temperature + " Nr. Service Locations = " + newConfig.getServicelocations().size() + " New Cost = " + newCost);
             }
 
-            if (counter % 10 == 0) {
-                System.out.println("Current temperature = " + temperature + " Current cost = " + currentCost + " Best cost = " + bestCost + " Amount of service locations = " + serviceLocations.size() + "Counter = " + counter);
-            }
-
-            temperature *= coolingRate;
-            counter += 1;
+            counter++;
+            temperature *= 1 - coolingRate;
         }
 
-        System.out.println("Final cost = " + bestCost);
-        serviceLocations = bestSolution;
-    }
-
-    private double calculateCosts(int counter) {
-        double cost = 0.0;
-        for (ServiceLocation serviceLocation : serviceLocations) {
-            cost += serviceLocation.getCost();
-        }
-        return cost;
-    }
-
-    private void removeLocation() {
-        if (serviceLocations.size() > 1) {
-            int indexToRemove = random.nextInt(serviceLocations.size());
-            serviceLocations.remove(indexToRemove);
-        }
-    }
-
-    private void addLocation() {
-        int randomNodeIndex = random.nextInt(nodes.size());
-        Node randomNode = nodes.get(randomNodeIndex);
-        int nodeIndex = randomNode.getNodeId();
-        double x = randomNode.getX();
-        double y = randomNode.getY();
-        String square = randomNode.getSquare();
-
-        ServiceLocation newLocation = new ServiceLocation(x, y, square, nodeIndex);
-        serviceLocations.add(newLocation);
+        System.out.println("Optimized total cost: " + currentCost);
     }
 
     private static double acceptanceProbability(double currentCost, double newCost, double temperature) {
