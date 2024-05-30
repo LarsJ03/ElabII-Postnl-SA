@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class ReadData {
-    public static ArrayList<Road> readRoadsFromFile(String filename) throws IOException {
+    public static ArrayList<Road> readRoadsFromFile(String filename, double kValue) throws IOException {
         ArrayList<Road> roads = new ArrayList<>();
         BufferedReader reader = new BufferedReader(new FileReader(filename));
         String line;
@@ -32,16 +32,20 @@ public class ReadData {
                 double orderOdds = Double.parseDouble(data[16].replace(",", "."));
                 int ordersCount = (int) (population * orderOdds);
 
-                ArrayList<Order> orders = new ArrayList<>();
+                ArrayList<Double> packageIndex = readPackageIndex("src/main/Data/DayOfYearIndex.csv");
 
-                // Create Order objects and add to the orders list
-                for (int i = 0; i < ordersCount; i++) {
-                    Order order = new Order(orderID++, x1, y1, v1);
-                    orders.add(order);
+                ArrayList<ArrayList<Order>> orders = new ArrayList<>();
+
+
+                for (double day : packageIndex) {
+                    int dayOrderCount = (int) (ordersCount * day);
+                    ArrayList<Order> dayOrders = new ArrayList<>();
+                    for (int i = 0; i < dayOrderCount; i++) {
+                        Order order = new Order(orderID++, x1, y1, v1, kValue);
+                        dayOrders.add(order); // Assuming createRandomOrder creates a new order
+                    }
+                    orders.add(dayOrders);
                 }
-
-                Road road = new Road(x1, y1, x2, y2, v1, v2, population, orders);
-                roads.add(road);
             }
         }
 

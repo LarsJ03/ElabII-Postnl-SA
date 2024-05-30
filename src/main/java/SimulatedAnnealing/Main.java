@@ -24,15 +24,16 @@ public class Main {
                 List<Message> messages = pollMessages(REQUEST_QUEUE_URL);
                 for (Message message : messages) {
                     String[] params = message.body().split(",");
-                    if (params.length == 3) {
+                    if (params.length == 4) {
                         double startingTemperature = Double.parseDouble(params[0]);
                         double endingTemperature = Double.parseDouble(params[1]);
                         double coolingRate = Double.parseDouble(params[2]);
+                        double kValue = Double.parseDouble(params[3]);
 
                         System.out.println(startingTemperature + " " + endingTemperature + " " + coolingRate);
 
                         // Process the message using Simulated Annealing
-                        String result = processMessage(startingTemperature, endingTemperature, coolingRate);
+                        String result = processMessage(startingTemperature, endingTemperature, coolingRate, kValue);
 
                         // Send completion message to another SQS queue with result details
                         sendMessage(RESPONSE_QUEUE_URL, result);
@@ -49,9 +50,9 @@ public class Main {
         // sqsClient.close(); // Remove or handle outside the loop for graceful shutdown
     }
 
-    private static String processMessage(double startingTemp, double endingTemp, double coolingRate) throws IOException {
+    private static String processMessage(double startingTemp, double endingTemp, double coolingRate, double kValue) throws IOException {
         ArrayList<ServiceLocation> serviceLocations = ReadData.readServiceLocationsFromFile("src/main/Data/ServicePointLocations.csv");
-        ArrayList<Road> roads = ReadData.readRoadsFromFile("src/main/Data/edges.csv");
+        ArrayList<Road> roads = ReadData.readRoadsFromFile("src/main/Data/edges.csv", kValue);
         ArrayList<Node> nodes = ReadData.readNodes("src/main/Data/nodes.csv");
         ArrayList<Double> packageIndex = ReadData.readPackageIndex("src/main/Data/DayOfYearIndex.csv");
         double[][] distances = ReadData.loadDistances("src/main/Data/distances.csv");

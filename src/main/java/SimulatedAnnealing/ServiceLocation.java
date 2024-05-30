@@ -63,10 +63,12 @@ public class ServiceLocation {
 
         // Calculate the total cost for road orders
         for (Road road : roads) {
-            ArrayList<Order> orders = road.getOrders();
-            for (Order order : orders) {
-                if (order.isForDelivery()) {
-                    roadOrderCostTotal += order.getWalkingDistanceServiceLocation() / 1000 * distanceCost * 365;
+            ArrayList<ArrayList<Order>> orderdays = road.getOrders();
+            for (ArrayList<Order> orderday : orderdays) {
+                for(Order order : orderday) {
+                    if (order.isForDelivery()) {
+                        roadOrderCostTotal += order.getWalkingDistanceServiceLocation() / 1000 * distanceCost;
+                    }
                 }
             }
         }
@@ -87,6 +89,19 @@ public class ServiceLocation {
         // Assign total cost to the class variable
         this.totalCost = totalCost;
         return totalCost;
+    }
+
+    public void removePickupOrders() {
+        for (Road road : roads) {
+            for (ArrayList<Order> dayOrders : road.getOrders()) {
+                for (Order order : dayOrders) {
+                    if (!order.isForDelivery()) {
+                        dayOrders.remove(order);
+                    }
+                }
+            }
+        }
+
     }
 
 }

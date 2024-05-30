@@ -84,8 +84,10 @@ public class ServiceLocationConfig {
         for (ServiceLocation serviceLocation : servicelocations) {
             int serviceNode = serviceLocation.getNodeID();
             for (Road road : serviceLocation.getRoads()) {
-                for (Order order : road.getOrders()) {
-                    order.setWalkingDistanceServiceLocation(distances, serviceNode);
+                for (ArrayList<Order> orderDay : road.getOrders()) {
+                    for (Order order : orderDay) {
+                        order.setWalkingDistanceServiceLocation(distances, serviceNode);
+                    }
                 }
             }
         }
