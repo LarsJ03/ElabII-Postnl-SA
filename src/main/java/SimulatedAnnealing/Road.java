@@ -7,13 +7,14 @@ public class Road {
     private int y1;
     private int x2;
     private int y2;
+
     private int v1;
     private int v2;
 
     private int population;
-    private ArrayList<ArrayList<Order>> orders;
+    private ArrayList<Order> orders;
 
-    public Road(int x1, int y1, int x2, int y2, int v1, int v2, int population, ArrayList<ArrayList<Order>> orders) {
+    public Road(int x1, int y1, int x2, int y2, int v1, int v2, int population, ArrayList<Order> orders) {
         this.x1 = x1;
         this.y1 = y1;
         this.x2 = x2;
@@ -24,6 +25,8 @@ public class Road {
         this.orders = orders;
     }
 
+    public int getNrOrders() {return this.orders.size();}
+
     public int getV1() {
         return v1;
     }
@@ -32,12 +35,8 @@ public class Road {
         return v2;
     }
 
-    public ArrayList<ArrayList<Order>> getOrders() {
+    public ArrayList<Order> getOrders() {
         return orders;
-    }
-
-    public void removeOrder(Order order) {
-        orders.remove(order);
     }
 
 }

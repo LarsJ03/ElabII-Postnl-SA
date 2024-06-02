@@ -28,7 +28,7 @@ public class Utils {
                 Utils.deepCopy(original.getServicelocations()),
                 Utils.deepCopy(original.getRoads()),
                 Utils.deepCopy(original.getDistances()),
-                Utils.deepCopy(original.getPackageIndex())
+                false
         );
     }
 }

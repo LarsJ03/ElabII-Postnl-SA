@@ -1,28 +1,16 @@
 package SimulatedAnnealing;
+
 import java.util.ArrayList;
 
 public class DeliveryDriver {
     private boolean isContract;
     private double numberHours;
-    private double drivenKm;
-    private double totalcost;
-    private ArrayList<ArrayList<Order>> orders;
-    private final double costPerKm = 0.21;
+    private ArrayList<Order> orders;
 
     public DeliveryDriver(boolean isContract) {
         this.isContract = isContract;
         this.numberHours = 0.0;
-        this.drivenKm = 0.0;
-        this.totalcost = 0.0;
         this.orders = new ArrayList<>();
-    }
-
-    public void setDrivenKm(double drivenKm) {
-        this.drivenKm = drivenKm;
-    }
-
-    public double getDrivenKm() {
-        return this.drivenKm;
     }
 
     public void setContract(boolean isContract) {
@@ -41,24 +29,11 @@ public class DeliveryDriver {
         return this.numberHours;
     }
 
-
-
-    public double totalCosts() {
-        totalcost = 0.0;
-        if (isContract) {
-            totalcost += 150 * 365;
-        } else {
-            totalcost += orders.size() * 250;
-        }
-
-        totalcost += costPerKm * drivenKm;
-
-
-        return totalcost;
+    public void addOrder(Order order) {
+        this.orders.add(order);
     }
 
-    public void calculateDrivingTime() {
-
+    public void removeOrder(Order order) {
+        this.orders.remove(order);
     }
 }
-

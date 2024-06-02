@@ -7,28 +7,36 @@ public class ServiceLocationConfig {
     private ArrayList<ServiceLocation> servicelocations;
     private double totalCost;
     private ArrayList<Road> roads;
-    private ArrayList<Double> packageIndex;
     private double[][] distances;
     private double globalBounceRate;
+    private boolean checkDay;
 
-    public ServiceLocationConfig(ArrayList<ServiceLocation> servicelocations, ArrayList<Road> roads, double[][] distances, ArrayList<Double> packageIndex) {
+    public ServiceLocationConfig(ArrayList<ServiceLocation> servicelocations, ArrayList<Road> roads, double[][] distances, boolean checkDay) {
         this.servicelocations = Utils.deepCopy(servicelocations);
         this.roads = Utils.deepCopy(roads);
         this.distances = Utils.deepCopy(distances);
-        this.packageIndex = Utils.deepCopy(packageIndex);
         this.totalCost = 0.0;
         this.globalBounceRate = 0.0;
+        this.checkDay = checkDay;
         assignRoads(distances);
         updateDistances();
-        setCapacity();
+        setCapacity(checkDay);
         calculateTotalCost();
     }
 
-    public void setGlobalBounceRate(double globalBounceRate) {
-        this.globalBounceRate = globalBounceRate;
+    public void setGlobalBounceRate() {
+        double bounceRate = 0.0;
+        for (ServiceLocation serviceLocation : servicelocations) {
+            bounceRate += serviceLocation.getBounceRate();
+        }
+
+
+
+        this.globalBounceRate = bounceRate / servicelocations.size();
     }
 
     public double getGlobalBounceRate() {
+        setGlobalBounceRate();
         return this.globalBounceRate;
     }
 
@@ -44,11 +52,8 @@ public class ServiceLocationConfig {
         return this.distances;
     }
 
-    public ArrayList<Double> getPackageIndex() {
-        return this.packageIndex;
-    }
-
     public double getTotalCost() {
+        calculateTotalCost();
         return this.totalCost;
     }
 
@@ -56,6 +61,9 @@ public class ServiceLocationConfig {
         totalCost = 0.0;
         for (ServiceLocation servicelocation : servicelocations) {
             totalCost += servicelocation.calculateCosts();
+            if (getGlobalBounceRate() > 0.01) {
+                totalCost += 10000;
+            }
         }
     }
 
@@ -64,6 +72,10 @@ public class ServiceLocationConfig {
     }
 
     public void assignRoads(double[][] distances) {
+        for (ServiceLocation serviceLocation : servicelocations) {
+            serviceLocation.clearProperties();
+        }
+
         for (Road road : roads) {
             double minDistance = Double.MAX_VALUE;
             ServiceLocation closestServiceLocation = null;
@@ -84,18 +96,18 @@ public class ServiceLocationConfig {
         for (ServiceLocation serviceLocation : servicelocations) {
             int serviceNode = serviceLocation.getNodeID();
             for (Road road : serviceLocation.getRoads()) {
-                for (ArrayList<Order> orderDay : road.getOrders()) {
-                    for (Order order : orderDay) {
-                        order.setWalkingDistanceServiceLocation(distances, serviceNode);
-                    }
+                for (Order order : road.getOrders()) {
+                    order.setWalkingDistanceServiceLocation(distances, serviceNode);
                 }
             }
         }
     }
 
-    public void setCapacity() {
-        for (ServiceLocation serviceLocation : servicelocations) {
-            serviceLocation.setCapacity(packageIndex);
+    public void setCapacity(boolean checkDay) {
+        if (!checkDay) {
+            for (ServiceLocation serviceLocation : servicelocations) {
+                serviceLocation.setCapacity();
+            }
         }
     }
 
@@ -107,7 +119,7 @@ public class ServiceLocationConfig {
             clearAllParameters();
             assignRoads(distances);
             updateDistances();
-            setCapacity();
+            setCapacity(false);
             calculateTotalCost();
         } else {
             System.out.println("No service locations to remove.");
@@ -120,7 +132,7 @@ public class ServiceLocationConfig {
         clearAllParameters();
         assignRoads(distances);
         updateDistances();
-        setCapacity();
+        setCapacity(false);
         calculateTotalCost();
     }
 

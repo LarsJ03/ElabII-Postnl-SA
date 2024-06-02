@@ -11,22 +11,24 @@ public class SimulatedAnnealing {
     private ArrayList<Double> packageIndex;
     private ArrayList<Node> nodes;
     private ServiceLocationConfig initialConfig;
+    private ServiceLocationConfig finalConfig;
     private double finalCost;
     private int counter;
-
-    public SimulatedAnnealing(ArrayList<ServiceLocation> serviceLocations, ArrayList<Road> roads, double[][] distances, ArrayList<Node> nodes, ArrayList<Double> packageIndex) {
+    public SimulatedAnnealing(ArrayList<ServiceLocation> serviceLocations, ArrayList<Road> roads, double[][] distances, ArrayList<Node> nodes) {
         this.serviceLocations = serviceLocations;
         this.roads = roads;
         this.distances = distances;
         this.nodes = nodes;
-        this.packageIndex = packageIndex;
     }
 
-    public void optimize(double startingTemperature, double endingTemperature, double coolingRate) throws IOException {
-        initialConfig = new ServiceLocationConfig(serviceLocations, roads, distances, packageIndex);
-        System.out.println("Original cost = " + initialConfig.getTotalCost());
+    public ServiceLocationConfig getServiceLocationConfig() {
+        return this.finalConfig;
+    }
 
-        ServiceLocationConfig config = new ServiceLocationConfig(new ArrayList<>(), roads, distances, packageIndex);
+
+
+    public void optimize(double startingTemperature, double endingTemperature, double coolingRate) throws IOException {
+        ServiceLocationConfig config = new ServiceLocationConfig(serviceLocations, roads, distances, false);
         config.addRandomServiceLocation(1);
         config.addRandomServiceLocation(1000);
         double currentCost = config.getTotalCost();
@@ -37,7 +39,7 @@ public class SimulatedAnnealing {
         while (temperature > endingTemperature && counter < 700) {
             ServiceLocationConfig newConfig = Utils.deepCopy(config);
 
-            if (random.nextDouble() < 0.2) {
+            if (random.nextDouble() < 0.35) {
                 newConfig.removeRandomServiceLocation();
             } else {
                 int randomNodeIndex = random.nextInt(nodes.size());
@@ -60,6 +62,7 @@ public class SimulatedAnnealing {
         }
 
         finalCost = currentCost;
+        finalConfig = config;
         System.out.println("Optimized total cost: " + finalCost);
     }
 

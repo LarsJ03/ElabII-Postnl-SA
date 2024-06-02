@@ -35,73 +35,88 @@ public class ServiceLocation {
         return this.roads;
     }
 
+    public double getBounceRate() {
+        calculateBounceRate();
+        return bounceRate;
+    }
+
+    public double calculateBounceRate() {
+
+        int totalOrders = 0;
+        for (Road road : roads) {
+            totalOrders += road.getOrders().size();
+        }
+
+        if (totalOrders > this.capacity) {
+
+            this.bounceRate = (double) (totalOrders - this.capacity) / totalOrders;
+        } else {
+            this.bounceRate = 0.0;
+        }
+
+        return this.bounceRate;
+    }
+
     public void clearProperties() {
         this.deliveryDrivers.clear();
         this.roads.clear();
-        this.capacity = 0;
         this.bounceRate = 0;
         this.totalCost = 0;
     }
 
-    public void setCapacity(ArrayList<Double> packageIndex) {
+    public void setCapacity() {
         int packages = 0;
         for (Road road : roads) {
-            packages += road.getOrders().size();
+            packages += (int) (road.getOrders().size() * 1.1);
         }
 
-        double maxPackageIndex = Collections.max(packageIndex);
+
 
         // Calculate capacity and round up
-        this.capacity = (int) Math.ceil(packages * maxPackageIndex) * 365;
+        this.capacity = packages;
     }
 
     public double calculateCosts() {
-        double locationCostTotal = locationCost;
+        calculateBounceRate();
+        this.totalCost = 0.0;
+        double locationCostTotal = locationCost / 365;
         double capacityCostTotal = capacity * capacityCost;
         double roadOrderCostTotal = 0;
         double deliveryDriverCostTotal = 0;
+        double penaltyCost = 0;
 
         // Calculate the total cost for road orders
         for (Road road : roads) {
-            ArrayList<ArrayList<Order>> orderdays = road.getOrders();
-            for (ArrayList<Order> orderday : orderdays) {
-                for(Order order : orderday) {
-                    if (order.isForDelivery()) {
-                        roadOrderCostTotal += order.getWalkingDistanceServiceLocation() / 1000 * distanceCost;
-                    }
+
+            ArrayList<Order> orders = road.getOrders();
+            for (Order order : orders) {
+                if (order.isForDelivery()) {
+                    roadOrderCostTotal += order.getWalkingDistanceServiceLocation() / 1000 * distanceCost * 2;
                 }
             }
         }
 
-        // Calculate the total cost for delivery drivers
-        for (DeliveryDriver deliveryDriver : deliveryDrivers) {
-            if (deliveryDriver.isContract()) {
-                deliveryDriverCostTotal += (150 * deliveryDriver.getNumberHours());
-            } else {
-                deliveryDriverCostTotal += (250 * deliveryDriver.getNumberHours());
-            }
+
+
+        if(getBounceRate() > 0.02) {
+            penaltyCost += 10000;
         }
 
+        //System.out.println("Location = " + locationCostTotal + " Capacity = " + capacityCostTotal + " roadordercost + " + roadOrderCostTotal + "deliverycost = " + deliveryDriverCostTotal + " penaltycost = " + penaltyCost);
         // Calculate total cost
-        double totalCost = locationCostTotal + capacityCostTotal + roadOrderCostTotal + deliveryDriverCostTotal;
-
-
-        // Assign total cost to the class variable
+        double totalCost = locationCostTotal + capacityCostTotal + roadOrderCostTotal + deliveryDriverCostTotal + penaltyCost;
+    // Assign total cost to the class variable
         this.totalCost = totalCost;
         return totalCost;
     }
 
-    public void removePickupOrders() {
+    public int getNrPackages() {
+        int nrPackages = 0;
         for (Road road : roads) {
-            for (ArrayList<Order> dayOrders : road.getOrders()) {
-                for (Order order : dayOrders) {
-                    if (!order.isForDelivery()) {
-                        dayOrders.remove(order);
-                    }
-                }
-            }
+            nrPackages += road.getOrders().size();
         }
 
+        return nrPackages;
     }
 
 }
