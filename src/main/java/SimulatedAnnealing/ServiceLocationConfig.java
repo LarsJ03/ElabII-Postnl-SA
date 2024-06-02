@@ -61,9 +61,6 @@ public class ServiceLocationConfig {
         totalCost = 0.0;
         for (ServiceLocation servicelocation : servicelocations) {
             totalCost += servicelocation.calculateCosts();
-            if (getGlobalBounceRate() > 0.01) {
-                totalCost += 10000;
-            }
         }
     }
 

@@ -67,7 +67,7 @@ public class ServiceLocation {
     public void setCapacity() {
         int packages = 0;
         for (Road road : roads) {
-            packages += (int) (road.getOrders().size() * 1.1);
+            packages += (int) (road.getOrders().size() * 1.2);
         }
 
 
@@ -94,12 +94,6 @@ public class ServiceLocation {
                     roadOrderCostTotal += order.getWalkingDistanceServiceLocation() / 1000 * distanceCost * 2;
                 }
             }
-        }
-
-
-
-        if(getBounceRate() > 0.02) {
-            penaltyCost += 10000;
         }
 
         //System.out.println("Location = " + locationCostTotal + " Capacity = " + capacityCostTotal + " roadordercost + " + roadOrderCostTotal + "deliverycost = " + deliveryDriverCostTotal + " penaltycost = " + penaltyCost);

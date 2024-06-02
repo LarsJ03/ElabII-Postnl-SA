@@ -48,6 +48,11 @@ public class SimulatedAnnealing {
             }
 
             double newCost = newConfig.getTotalCost();
+
+            if (newConfig.getGlobalBounceRate() > 0.02) {
+                newCost += 100000;
+            }
+
             if (acceptanceProbability(currentCost, newCost, temperature) > random.nextDouble()) {
                 config = Utils.deepCopy(newConfig);
                 currentCost = newCost;

@@ -85,6 +85,7 @@ public class Main {
         System.out.println("Initial Total Costs: " + configInitial.getTotalCost());
 
         System.out.println("Calculating metrics before optimization...");
+        MemoryLogger.logMemoryUsage("Before checkdays");
         for (int day : checkDays) {
             ArrayList<ServiceLocation> serviceLocations2 = Utils.deepCopy(serviceLocations);
             ArrayList<Road> roadsDay = Utils.deepCopy(ReadData.readRoadsFromFile("src/main/Data/edges.csv", packageIndex.get(day)));
@@ -92,8 +93,12 @@ public class Main {
             ServiceLocationConfig config = new ServiceLocationConfig(serviceLocations2, roadsDay, distances, true);
             bounceRatesBefore.add(config.getGlobalBounceRate());
             costsBefore.add(config.getTotalCost());
+
+            System.out.println("TOTAL COST = " + config.getTotalCost());
             config = null;
         }
+
+        MemoryLogger.logMemoryUsage("After checkdays");
 
         configInitial = null;
 
@@ -114,6 +119,7 @@ public class Main {
         System.out.println("Average Cost: " + averageCostBefore);
 
         System.out.println("Starting Simulated Annealing optimization...");
+        MemoryLogger.logMemoryUsage("Before simulated annealing");
         SimulatedAnnealing simulatedAnnealing = new SimulatedAnnealing(serviceLocations, roads, distances, nodes);
         simulatedAnnealing.optimize(startingTemp, endingTemp, coolingRate);
         System.out.println("Simulated Annealing optimization completed");
@@ -124,7 +130,7 @@ public class Main {
 
         ArrayList<Double> bounceRatesAfter = new ArrayList<>();
         ArrayList<Double> costsAfter = new ArrayList<>();
-
+        MemoryLogger.logMemoryUsage("Before after optimizing checkdays");
         System.out.println("Calculating metrics after optimization...");
         for (int day : checkDays) {
             ArrayList<ServiceLocation> optimizedServiceLocationsCopy = Utils.deepCopy(optimizedServiceLocations);
@@ -134,7 +140,10 @@ public class Main {
             ServiceLocationConfig config = new ServiceLocationConfig(optimizedServiceLocationsCopy, roadsDay, distances, true);
             bounceRatesAfter.add(config.getGlobalBounceRate());
             costsAfter.add(config.getTotalCost());
+            System.out.println("TOTAL COST = " + config.getTotalCost());
         }
+
+        MemoryLogger.logMemoryUsage("After optimizing checkdays");
 
         System.out.println("Metrics after optimization calculated.");
         double maxBounceRateAfter = bounceRatesAfter.stream().max(Double::compareTo).orElse(0.0);
