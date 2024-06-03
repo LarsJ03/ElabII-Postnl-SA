@@ -39,7 +39,7 @@ public class Order {
     public void setForDelivery() {
         double P0 = 0.8;
         double d0 = 1100;
-        double k = 0.005;
+        double k = 0.0035;
         double probability = P0 * (1 - 1 / (1 + Math.exp(-k * (walkingDistanceServiceLocation - d0))));
         if (probability > random.nextDouble()) {
             this.forDelivery = false;

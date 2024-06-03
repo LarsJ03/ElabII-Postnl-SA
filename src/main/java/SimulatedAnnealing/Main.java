@@ -52,28 +52,30 @@ public class Main {
     }
 
     public static String processMessage(double startingTemp, double endingTemp, double coolingRate, int optimizeDay, String checkDaysStr) throws IOException {
+        long startTimeTotal = System.nanoTime();
+
         ArrayList<Integer> checkDays = (ArrayList<Integer>) Arrays.stream(checkDaysStr.split(","))
                 .map(Integer::parseInt)
                 .collect(Collectors.toList());
 
         System.out.println("Parsed checkDays: " + checkDays);
 
-        MemoryLogger.logMemoryUsage("Before packageIndex");
+
         ArrayList<Double> packageIndex = ReadData.readPackageIndex("src/main/Data/DayOfYearIndex.csv");
 
         double dayIndex = packageIndex.get(optimizeDay);
         System.out.println("Optimizing for day " + optimizeDay + " with day index = " + dayIndex);
 
-        MemoryLogger.logMemoryUsage("Before serviceLocations");
+
         ArrayList<ServiceLocation> serviceLocations = ReadData.readServiceLocationsFromFile("src/main/Data/ServicePointLocations.csv");
-        MemoryLogger.logMemoryUsage("Before roads");
+
         ArrayList<Road> roads = ReadData.readRoadsFromFile("src/main/Data/edges.csv", dayIndex);
-        MemoryLogger.logMemoryUsage("Before nodes");
+
         ArrayList<Node> nodes = ReadData.readNodes("src/main/Data/nodes.csv");
 
-        MemoryLogger.logMemoryUsage("Before distances");
+
         double[][] distances = ReadData.loadDistances("src/main/Data/distances.csv");
-        MemoryLogger.logMemoryUsage("After distances");
+
 
         ArrayList<Double> bounceRatesBefore = new ArrayList<>();
         ArrayList<Double> costsBefore = new ArrayList<>();
@@ -85,7 +87,7 @@ public class Main {
         System.out.println("Initial Total Costs: " + configInitial.getTotalCost());
 
         System.out.println("Calculating metrics before optimization...");
-        MemoryLogger.logMemoryUsage("Before checkdays");
+
         for (int day : checkDays) {
             ArrayList<ServiceLocation> serviceLocations2 = Utils.deepCopy(serviceLocations);
             ArrayList<Road> roadsDay = Utils.deepCopy(ReadData.readRoadsFromFile("src/main/Data/edges.csv", packageIndex.get(day)));
@@ -94,15 +96,13 @@ public class Main {
             bounceRatesBefore.add(config.getGlobalBounceRate());
             costsBefore.add(config.getTotalCost());
 
-            System.out.println("TOTAL COST = " + config.getTotalCost());
+
             config = null;
         }
 
-        MemoryLogger.logMemoryUsage("After checkdays");
+
 
         configInitial = null;
-
-
 
         System.out.println("Metrics before optimization calculated.");
         double maxBounceRateBefore = bounceRatesBefore.stream().max(Double::compareTo).orElse(0.0);
@@ -118,19 +118,22 @@ public class Main {
         System.out.println("Min Cost: " + minCostBefore);
         System.out.println("Average Cost: " + averageCostBefore);
 
+        long startTimeSA = System.nanoTime();
         System.out.println("Starting Simulated Annealing optimization...");
-        MemoryLogger.logMemoryUsage("Before simulated annealing");
+
         SimulatedAnnealing simulatedAnnealing = new SimulatedAnnealing(serviceLocations, roads, distances, nodes);
         simulatedAnnealing.optimize(startingTemp, endingTemp, coolingRate);
         System.out.println("Simulated Annealing optimization completed");
-        MemoryLogger.logMemoryUsage("After Simulated Annealing");
+
+        long endTimeSA = System.nanoTime();
+        long timeSA = endTimeSA - startTimeSA;
 
         ServiceLocationConfig optimizedServiceLocationConfig = simulatedAnnealing.getServiceLocationConfig();
         ArrayList<ServiceLocation> optimizedServiceLocations = optimizedServiceLocationConfig.getServicelocations();
 
         ArrayList<Double> bounceRatesAfter = new ArrayList<>();
         ArrayList<Double> costsAfter = new ArrayList<>();
-        MemoryLogger.logMemoryUsage("Before after optimizing checkdays");
+
         System.out.println("Calculating metrics after optimization...");
         for (int day : checkDays) {
             ArrayList<ServiceLocation> optimizedServiceLocationsCopy = Utils.deepCopy(optimizedServiceLocations);
@@ -140,10 +143,10 @@ public class Main {
             ServiceLocationConfig config = new ServiceLocationConfig(optimizedServiceLocationsCopy, roadsDay, distances, true);
             bounceRatesAfter.add(config.getGlobalBounceRate());
             costsAfter.add(config.getTotalCost());
-            System.out.println("TOTAL COST = " + config.getTotalCost());
+
         }
 
-        MemoryLogger.logMemoryUsage("After optimizing checkdays");
+
 
         System.out.println("Metrics after optimization calculated.");
         double maxBounceRateAfter = bounceRatesAfter.stream().max(Double::compareTo).orElse(0.0);
@@ -152,12 +155,23 @@ public class Main {
         double minCostAfter = costsAfter.stream().min(Double::compareTo).orElse(0.0);
         double averageCostAfter = costsAfter.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
 
+        ArrayList<Integer> serviceLocationsNodes = new ArrayList<>();
+        for (ServiceLocation serviceLocation : optimizedServiceLocations) {
+            serviceLocationsNodes.add(serviceLocation.getNodeID());
+        }
+
         System.out.println("After Optimization:");
         System.out.println("Max Bounce Rate: " + maxBounceRateAfter);
         System.out.println("Average Bounce Rate: " + averageBounceRateAfter);
         System.out.println("Max Cost: " + maxCostAfter);
         System.out.println("Min Cost: " + minCostAfter);
         System.out.println("Average Cost: " + averageCostAfter);
+
+        long endTimeTotal = System.nanoTime();
+        long timeTotal = endTimeTotal - startTimeTotal;
+
+        System.out.println("TimeTotal: " + timeTotal);
+        System.out.println("TimeSA: " + timeSA);
 
         return "Before Optimization:\n" +
                 "Max Bounce Rate: " + maxBounceRateBefore + "\n" +
@@ -170,7 +184,10 @@ public class Main {
                 "Average Bounce Rate: " + averageBounceRateAfter + "\n" +
                 "Max Cost: " + maxCostAfter + "\n" +
                 "Min Cost: " + minCostAfter + "\n" +
-                "Average Cost: " + averageCostAfter;
+                "Average Cost: " + averageCostAfter + "\n" +
+                "ServiceLocations: " + serviceLocationsNodes + "\n" +
+                "TimeTotal: " + timeTotal + " ns\n" +
+                "TimeSA: " + timeSA + " ns";
     }
 
     private static List<Message> pollMessages(String queueUrl) {
@@ -198,3 +215,4 @@ public class Main {
         sqsClient.deleteMessage(deleteMessageRequest);
     }
 }
+
