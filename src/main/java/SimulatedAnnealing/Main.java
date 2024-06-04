@@ -174,7 +174,14 @@ public class Main {
         System.out.println("TimeTotal: " + timeTotal);
         System.out.println("TimeSA: " + timeSA);
 
-        return "Before Optimization:\n" +
+        return "Input Parameters:\n" +
+                "Starting Temperature: " + startingTemp + "\n" +
+                "Ending Temperature: " + endingTemp + "\n" +
+                "Cooling Rate: " + coolingRate + "\n" +
+                "Optimize Day: " + optimizeDay + "\n" +
+                "Check Days: " + checkDaysStr + "\n" +
+                "Optimize Current: " + optimizeCurrent + "\n" +
+                "Before Optimization:\n" +
                 "Max Bounce Rate: " + maxBounceRateBefore + "\n" +
                 "Average Bounce Rate: " + averageBounceRateBefore + "\n" +
                 "Max Cost: " + maxCostBefore + "\n" +
@@ -188,8 +195,7 @@ public class Main {
                 "Average Cost: " + averageCostAfter + "\n" +
                 "ServiceLocations: " + serviceLocationsNodes + "\n" +
                 "TimeTotal: " + timeTotal + " ns\n" +
-                "TimeSA: " + timeSA + " ns\n" +
-                "OptimizeCurrent" + optimizeCurrent;
+                "TimeSA: " + timeSA + " ns\n";
     }
 
     private static List<Message> pollMessages(String queueUrl) {
