@@ -27,7 +27,7 @@ public class SimulatedAnnealing {
 
 
 
-    public void optimize(double startingTemperature, double endingTemperature, double coolingRate) throws IOException {
+    public void optimize(double startingTemperature, double endingTemperature, double coolingRate, boolean optimizeCurrent) throws IOException {
         ServiceLocationConfig config = new ServiceLocationConfig(serviceLocations, roads, distances, false);
         config.addRandomServiceLocation(1);
         config.addRandomServiceLocation(1000);
@@ -40,19 +40,28 @@ public class SimulatedAnnealing {
             temp = temperature / counter;
 
             ServiceLocationConfig newConfig = Utils.deepCopy(config);
+            double newCost = 0.0;
 
-            if (random.nextDouble() < 0.35) {
+            if (random.nextDouble() < 0.5) {
                 newConfig.removeRandomServiceLocation();
+                newCost = newConfig.getTotalCost();
             } else {
                 int randomNodeIndex = random.nextInt(nodes.size());
                 int randomNodeID = nodes.get(randomNodeIndex).getNodeID();
                 newConfig.addRandomServiceLocation(randomNodeID);
+                newCost = newConfig.getTotalCost();
+                if (optimizeCurrent) {
+                    newCost += 1000;
+                }
             }
 
-            double newCost = newConfig.getTotalCost();
 
-            if (newConfig.getGlobalBounceRate() > 0.02) {
-                newCost += 100000;
+            for (ServiceLocation serviceLocation : newConfig.getServicelocations()) {
+                if (serviceLocation.getBounceRate() > 0.02) {
+                    newCost += 1000;
+                } else if (newConfig.getGlobalBounceRate() > 0.01) {
+                    newCost += 2000;
+                }
             }
 
             if (acceptanceProbability(currentCost, newCost, temp) > random.nextDouble()) {

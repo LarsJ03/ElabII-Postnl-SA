@@ -5,20 +5,21 @@ import java.util.ArrayList;
 
 public class Test {
     public static void main(String[] args) throws IOException {
-        double startingTemp = 5000.0;
+        double startingTemp = 50.0;
         double endingTemp = 8.0;
         double coolingRate = 0.02;
         int optimizeDay = 356;
+        boolean removeOnly = true;
 
         ArrayList<Integer> checkDays = new ArrayList<>();
         for (int i = 0; i <= 364; i++) {
             checkDays.add(i);
         }
 
-        createConfiguration(startingTemp, endingTemp, coolingRate, optimizeDay, checkDays);
+        createConfiguration(startingTemp, endingTemp, coolingRate, optimizeDay, checkDays, removeOnly);
     }
 
-    public static void createConfiguration(double startingTemp, double endingTemp, double coolingRate, int optimizeDay, ArrayList<Integer> checkDays) throws IOException {
+    public static void createConfiguration(double startingTemp, double endingTemp, double coolingRate, int optimizeDay, ArrayList<Integer> checkDays, boolean removeOnly) throws IOException {
         MemoryLogger.logMemoryUsage("Before packageIndex");
         ArrayList<Double> packageIndex = ReadData.readPackageIndex("src/main/Data/DayOfYearIndex.csv");
 
@@ -42,7 +43,7 @@ public class Test {
 
         ArrayList<ServiceLocation> serviceLocationsInitial = Utils.deepCopy(serviceLocations);
         ArrayList<Road> roadsDayInitial = Utils.deepCopy(ReadData.readRoadsFromFile("src/main/Data/edges.csv", packageIndex.get(optimizeDay)));
-
+        MemoryLogger.logMemoryUsage("Before checks");
         ServiceLocationConfig configInitial = new ServiceLocationConfig(serviceLocationsInitial, roadsDayInitial, distances, false);
         System.out.println("Initial Total Costs: " + configInitial.getTotalCost());
 
@@ -58,7 +59,7 @@ public class Test {
             bounceRatesBefore.add(config.getGlobalBounceRate());
             costsBefore.add(config.getTotalCost());
         }
-
+        MemoryLogger.logMemoryUsage("After checks");
         // Calculate metrics before optimization
         double maxBounceRateBefore = bounceRatesBefore.stream().max(Double::compareTo).orElse(0.0);
         double averageBounceRateBefore = bounceRatesBefore.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
@@ -77,7 +78,7 @@ public class Test {
 
         // Perform Simulated Annealing
         SimulatedAnnealing simulatedAnnealing = new SimulatedAnnealing(serviceLocations, roads, distances, nodes);
-        simulatedAnnealing.optimize(startingTemp, endingTemp, coolingRate);
+        simulatedAnnealing.optimize(startingTemp, endingTemp, coolingRate, removeOnly);
         System.out.println("Simulated Annealing finished");
         MemoryLogger.logMemoryUsage("After Simulated Annealing");
 
@@ -99,6 +100,8 @@ public class Test {
             bounceRatesAfter.add(config.getGlobalBounceRate());
             costsAfter.add(config.getTotalCost());
         }
+
+        MemoryLogger.logMemoryUsage("After after checks");
 
         // Calculate metrics after optimization
         double maxBounceRateAfter = bounceRatesAfter.stream().max(Double::compareTo).orElse(0.0);

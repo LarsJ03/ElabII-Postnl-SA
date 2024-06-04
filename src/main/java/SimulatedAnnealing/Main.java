@@ -32,11 +32,12 @@ public class Main {
                     double endingTemperature = Double.parseDouble(params[1]);
                     double coolingRate = Double.parseDouble(params[2]);
                     int optimizeDay = Integer.parseInt(params[3]);
+                    boolean onlyRemove = Boolean.parseBoolean(params[5]);
 
-                    System.out.println("Starting Temperature: " + startingTemperature + ", Ending Temperature: " + endingTemperature + ", Cooling Rate: " + coolingRate + ", Optimize Day: " + optimizeDay);
+                    System.out.println("Starting Temperature: " + startingTemperature + ", Ending Temperature: " + endingTemperature + ", Cooling Rate: " + coolingRate + ", Optimize Day: " + optimizeDay + ", Only Remove: " + onlyRemove);
 
                     // Process the message using Simulated Annealing
-                    String result = processMessage(startingTemperature, endingTemperature, coolingRate, optimizeDay, params[4]);
+                    String result = processMessage(startingTemperature, endingTemperature, coolingRate, optimizeDay, params[4], onlyRemove);
 
                     // Send completion message to another SQS queue with result details
                     sendMessage(RESPONSE_QUEUE_URL, result);
@@ -51,7 +52,7 @@ public class Main {
         // sqsClient.close(); // Remove or handle outside the loop for graceful shutdown
     }
 
-    public static String processMessage(double startingTemp, double endingTemp, double coolingRate, int optimizeDay, String checkDaysStr) throws IOException {
+    public static String processMessage(double startingTemp, double endingTemp, double coolingRate, int optimizeDay, String checkDaysStr, boolean optimizeCurrent) throws IOException {
         long startTimeTotal = System.nanoTime();
 
         ArrayList<Integer> checkDays = (ArrayList<Integer>) Arrays.stream(checkDaysStr.split(","))
@@ -122,7 +123,7 @@ public class Main {
         System.out.println("Starting Simulated Annealing optimization...");
 
         SimulatedAnnealing simulatedAnnealing = new SimulatedAnnealing(serviceLocations, roads, distances, nodes);
-        simulatedAnnealing.optimize(startingTemp, endingTemp, coolingRate);
+        simulatedAnnealing.optimize(startingTemp, endingTemp, coolingRate, optimizeCurrent);
         System.out.println("Simulated Annealing optimization completed");
 
         long endTimeSA = System.nanoTime();
@@ -187,7 +188,8 @@ public class Main {
                 "Average Cost: " + averageCostAfter + "\n" +
                 "ServiceLocations: " + serviceLocationsNodes + "\n" +
                 "TimeTotal: " + timeTotal + " ns\n" +
-                "TimeSA: " + timeSA + " ns";
+                "TimeSA: " + timeSA + " ns\n" +
+                "OptimizeCurrent" + optimizeCurrent;
     }
 
     private static List<Message> pollMessages(String queueUrl) {
