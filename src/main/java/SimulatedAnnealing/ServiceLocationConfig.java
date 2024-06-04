@@ -14,7 +14,7 @@ public class ServiceLocationConfig {
     public ServiceLocationConfig(ArrayList<ServiceLocation> servicelocations, ArrayList<Road> roads, double[][] distances, boolean checkDay) {
         this.servicelocations = Utils.deepCopy(servicelocations);
         this.roads = Utils.deepCopy(roads);
-        this.distances = Utils.deepCopy(distances);
+        this.distances = distances;
         this.totalCost = 0.0;
         this.globalBounceRate = 0.0;
         this.checkDay = checkDay;

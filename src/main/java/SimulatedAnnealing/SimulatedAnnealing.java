@@ -34,9 +34,11 @@ public class SimulatedAnnealing {
         double currentCost = config.getTotalCost();
         double temperature = startingTemperature;
         Random random = new Random();
+        double temp = temperature;
+        counter = 1;
+        while (temp > endingTemperature && counter < 10000) {
+            temp = temperature / counter;
 
-        counter = 0;
-        while (temperature > endingTemperature && counter < 700) {
             ServiceLocationConfig newConfig = Utils.deepCopy(config);
 
             if (random.nextDouble() < 0.35) {
@@ -53,17 +55,17 @@ public class SimulatedAnnealing {
                 newCost += 100000;
             }
 
-            if (acceptanceProbability(currentCost, newCost, temperature) > random.nextDouble()) {
+            if (acceptanceProbability(currentCost, newCost, temp) > random.nextDouble()) {
                 config = Utils.deepCopy(newConfig);
                 currentCost = newCost;
             }
 
             if (counter % 30 == 0) {
-                System.out.println("Best cost = " + currentCost + " Temperature = " + temperature + " Nr. Service Locations = " + newConfig.getServicelocations().size() + " New Cost = " + newCost + " Counter = "+ counter);
+                System.out.println("Best cost = " + currentCost + " Temperature = " + temp + " Nr. Service Locations = " + newConfig.getServicelocations().size() + " New Cost = " + newCost + " Counter = "+ counter);
             }
 
             counter++;
-            temperature *= 1 - coolingRate;
+
         }
 
         finalCost = currentCost;

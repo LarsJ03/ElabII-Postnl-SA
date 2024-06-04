@@ -5,8 +5,8 @@ import java.util.ArrayList;
 
 public class Test {
     public static void main(String[] args) throws IOException {
-        double startingTemp = 10.0;
-        double endingTemp = 1.0;
+        double startingTemp = 5000.0;
+        double endingTemp = 8.0;
         double coolingRate = 0.02;
         int optimizeDay = 356;
 

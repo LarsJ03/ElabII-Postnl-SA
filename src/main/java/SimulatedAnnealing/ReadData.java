@@ -29,7 +29,7 @@ public class ReadData {
             int x2 = (int) Double.parseDouble(data[5]);
             int y2 = (int) Double.parseDouble(data[6]);
             int population = (int) Double.parseDouble(data[13]);
-            int ordersCount = Integer.parseInt(data[38]) / 365;
+            int ordersCount = Integer.parseInt(data[37]) / 365;
 
             ArrayList<Order> orders = new ArrayList<>();
 
